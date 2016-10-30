@@ -54,7 +54,19 @@ namespace Sxf_Utilities
             return HttpRuntime.Cache[key];
         }
 
+        public static object Update(String key, DateTime enddate)
+        {
+            var v = GetCache(key);
 
+            if (v == null)
+            {
+                return null;
+            }
+
+            TryAddCache(key, v, enddate);
+
+            return v;
+        }
 
         /// <summary>
         /// 移除缓存
@@ -73,21 +85,21 @@ namespace Sxf_Utilities
         /// </summary>
         public static void RemoveMultiCache(string keyInclude)
         {
-            IDictionaryEnumerator CacheEnum = HttpRuntime.Cache.GetEnumerator();
-            while (CacheEnum.MoveNext())
+            IDictionaryEnumerator cacheEnum = HttpRuntime.Cache.GetEnumerator();
+            while (cacheEnum.MoveNext())
             {
-                if (CacheEnum.Key.ToString().Contains(keyInclude.ToString()))
-                    HttpRuntime.Cache.Remove(CacheEnum.Key.ToString());
+                if (cacheEnum.Key.ToString().Contains(keyInclude.ToString()))
+                    HttpRuntime.Cache.Remove(cacheEnum.Key.ToString());
             }
         }
 
         public static void RemoveMultiCache(Regex regex)
         {
-            IDictionaryEnumerator CacheEnum = HttpRuntime.Cache.GetEnumerator();
-            while (CacheEnum.MoveNext())
+            IDictionaryEnumerator cacheEnum = HttpRuntime.Cache.GetEnumerator();
+            while (cacheEnum.MoveNext())
             {
-                if (regex.IsMatch(CacheEnum.Key.ToString()))
-                    HttpRuntime.Cache.Remove(CacheEnum.Key.ToString());
+                if (regex.IsMatch(cacheEnum.Key.ToString()))
+                    HttpRuntime.Cache.Remove(cacheEnum.Key.ToString());
 
             }
         }
@@ -98,10 +110,10 @@ namespace Sxf_Utilities
         /// </summary>
         public static void RemoveAllCache()
         {
-            IDictionaryEnumerator CacheEnum = HttpRuntime.Cache.GetEnumerator();
-            while (CacheEnum.MoveNext())
+            IDictionaryEnumerator cacheEnum = HttpRuntime.Cache.GetEnumerator();
+            while (cacheEnum.MoveNext())
             {
-                HttpRuntime.Cache.Remove(CacheEnum.Key.ToString());
+                HttpRuntime.Cache.Remove(cacheEnum.Key.ToString());
             }
         }
     }

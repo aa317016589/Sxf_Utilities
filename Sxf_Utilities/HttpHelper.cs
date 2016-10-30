@@ -15,6 +15,7 @@ namespace Sxf_Utilities
     {
         private static readonly string _defaultUserAgent = "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)";
 
+        #region 异步
         public static async Task<String> CreateHttpResponseResultAsync(String url, HttpTypes httpType, String parameters, Encoding requestEncoding, int? timeout = null, string userAgent = "", CookieCollection cookies = null, Boolean isJson = true)
         {
             try
@@ -25,7 +26,7 @@ namespace Sxf_Utilities
 
                 String result = await GetStreamAsync(request, requestEncoding);
 
-                LogHelper.Info(url + parameters, result);
+
 
                 return result;
             }
@@ -33,7 +34,7 @@ namespace Sxf_Utilities
             {
                 foreach (Exception inner in ex.InnerExceptions)
                 {
-                    LogHelper.Error(inner.Source, inner.Message);
+
                 }
 
 
@@ -51,9 +52,6 @@ namespace Sxf_Utilities
         }
 
 
-
-
-
         public static async Task<String> CreateHttpResponseResultAsync(String url, HttpTypes httpType, String parameters)
         {
             return await CreateHttpResponseResultAsync(url, httpType, parameters, Encoding.UTF8);
@@ -66,30 +64,42 @@ namespace Sxf_Utilities
 
         public static async Task<String> GetStreamAsync(HttpWebResponse response, Encoding encoding)
         {
-            return await Task.Run(() =>
+            try
             {
-                try
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    if (response.StatusCode == HttpStatusCode.OK)
-                    {
-                        return StreamToString(response, encoding);
-                    }
-                    else
-                    {
-                        response.Close();
-                    }
+                    return await StreamToStringAsync(response, encoding);
                 }
-                catch (Exception e)
+                else
                 {
-                    throw e;
+                    response.Close();
+                    return "";
+                }
+            }
+            catch (AggregateException ex)
+            {
+                foreach (Exception inner in ex.InnerExceptions)
+                {
+
                 }
 
                 return "";
-
-            });
+            }
         }
 
+        private static async Task<String> StreamToStringAsync(HttpWebResponse response, Encoding encoding)
+        {
+            using (response)
+            {
+                using (StreamReader sr = new StreamReader(response.GetResponseStream(), encoding))
+                {
+                    string result = await sr.ReadToEndAsync();
 
+                    return result;
+                }
+            }
+        }
+        #endregion
 
         #region 同步
         public static String CreateHttpResponseResult(String url)
@@ -127,7 +137,7 @@ namespace Sxf_Utilities
 
         public static String GerHttpResponseResult(String url, HttpTypes httpType, String parameters,
             Encoding requestEncoding, int? timeout = null, string userAgent = "", CookieCollection cookies = null,
-            Boolean isJson = true)
+            Boolean isJson = false)
         {
 
             HttpWebResponse request = null;
@@ -141,14 +151,14 @@ namespace Sxf_Utilities
             }
             catch (Exception ex)
             {
-                LogHelper.Error(url, ex.Message);
+
                 return "";
             }
 
 
             String result = GetStream(request, requestEncoding);
 
-            LogHelper.Info(url, result);
+
 
             return result;
         }
@@ -167,15 +177,14 @@ namespace Sxf_Utilities
         }
 
 
+
         #endregion
-
-
 
         #region 构造对象
 
         private static HttpWebRequest CreateHttpWebRequest(String url, HttpTypes httpType, String parameters,
 Encoding requestEncoding, int? timeout = null, string userAgent = "", CookieCollection cookies = null,
-Boolean IsJson = true)
+Boolean isJson = true)
         {
             if (string.IsNullOrEmpty(url))
             {
@@ -203,7 +212,7 @@ Boolean IsJson = true)
 
             request.Method = httpType.ToString().ToUpper();
 
-            request.ContentType = IsJson ? "application/json;charset=UTF-8" : "application/x-www-form-urlencoded";
+            request.ContentType = isJson ? "application/json;charset=UTF-8" : "application/x-www-form-urlencoded";
 
             request.UserAgent = string.IsNullOrEmpty(userAgent) ? _defaultUserAgent : userAgent;
 
@@ -235,13 +244,12 @@ Boolean IsJson = true)
         }
         #endregion
 
-
-
         private static bool CheckValidationResult(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors)
         {
             return true; //总是接受  
         }
 
+        #region 辅助
         public static String FormatPostParameters(IDictionary<String, String> parameters)
         {
             return String.Join("&", parameters.Select(s => String.Format("{0}={1}", s.Key, s.Value)));
@@ -283,6 +291,7 @@ Boolean IsJson = true)
 
             return FormatPostParameters(dic);
         }
+        #endregion
     }
 
     public enum HttpTypes

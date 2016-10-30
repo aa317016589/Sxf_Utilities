@@ -1,34 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace Sxf_Utilities
 {
     public class ReturnJson
     {
-        public const Int32 SUCCESS = 2000;
+        private const Int32 Success = 2000;
 
-        private const Int32 FAILURE = 1041;
+        private const Int32 Failure = 1041;
 
         private readonly String K = "code", V = "mes";
 
-        public const String List = "data", PageCount = "totalCount", PageIndex = "pageIndex", PageSize = "pageSize";
-
+        public const String List = "data", PageCount = "pageCount", PageIndex = "pageIndex", PageSize = "pageSize", TotalCount = "totalCount";
 
         private readonly String _defaultForAjaxSuccess;
 
         private readonly String _defaultForAjax;
 
-        Dictionary<String, object> MessagesDic;
+        Dictionary<String, object> _messagesDic;
 
         #region 设置成功后需要返回的信息
 
 
         public virtual void SetSuccess(object suceessData)
         {
-            MessagesDic[K] = SUCCESS;
+            _messagesDic[K] = Success;
 
-            MessagesDic[V] = suceessData;
+            _messagesDic[V] = suceessData;
         }
 
         public virtual void SetSuccess()
@@ -47,7 +47,7 @@ namespace Sxf_Utilities
         /// <param name="message"></param>
         public virtual void SetErrorMessage(String message)
         {
-            MessagesDic[V] = message;
+            _messagesDic[V] = message;
         }
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace Sxf_Utilities
         /// <param name="errors"></param>
         public virtual void SetErrorMessage(IEnumerable<String> errors)
         {
-            MessagesDic[V] = String.Join("<br />", errors);
+            _messagesDic[V] = String.Join("<br />", errors);
         }
 
 
@@ -70,25 +70,36 @@ namespace Sxf_Utilities
         /// <returns></returns>
         public virtual Dictionary<string, object> ResponseMessage()
         {
-            if (MessagesDic[V] == null)
+            if (_messagesDic[V] == null)
             {
                 SetErrorMessage(_defaultForAjax);
             }
 
-            return MessagesDic;
+            return _messagesDic;
         }
         #endregion
 
         #region 添加
 
-        public void AddDic(String key, object value)
+        public ReturnJson AddDic(Dictionary<String, Object> otherData)
         {
-            if (MessagesDic.ContainsKey(key))
+            _messagesDic = _messagesDic.Concat(otherData).ToDictionary(k => k.Key, v => v.Value);
+
+            return this;
+        }
+
+
+        public ReturnJson AddDic(String key, object value)
+        {
+            if (_messagesDic.ContainsKey(key))
             {
-                return;
+                _messagesDic[key] = value;
+                return this;
             }
 
-            MessagesDic.Add(key, value);
+            _messagesDic.Add(key, value);
+
+            return this;
         }
 
 
@@ -105,7 +116,7 @@ namespace Sxf_Utilities
 
             foreach (var propertyInfo in propertyInfos)
             {
-                MessagesDic.Add(propertyInfo.Name, propertyInfo.GetValue(data, null));
+                _messagesDic.Add(propertyInfo.Name, propertyInfo.GetValue(data, null));
             }
         }
 
@@ -132,9 +143,9 @@ namespace Sxf_Utilities
             _defaultForAjax = "操作失败";
 
 
-            MessagesDic = new Dictionary<string, object>() { };
-            MessagesDic.Add(K, flag ? SUCCESS : FAILURE);
-            MessagesDic.Add(V, (flag ? _defaultForAjaxSuccess : _defaultForAjax));
+            _messagesDic = new Dictionary<string, object>() { };
+            _messagesDic.Add(K, flag ? Success : Failure);
+            _messagesDic.Add(V, (flag ? _defaultForAjaxSuccess : _defaultForAjax));
         }
 
         #endregion

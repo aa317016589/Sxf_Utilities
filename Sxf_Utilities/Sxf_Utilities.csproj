@@ -54,6 +54,7 @@
     <Compile Include="IEnumerableExtensions.cs" />
     <Compile Include="LogHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QueryableExtension.cs" />
     <Compile Include="ReturnJson.cs" />
   </ItemGroup>
   <ItemGroup>
