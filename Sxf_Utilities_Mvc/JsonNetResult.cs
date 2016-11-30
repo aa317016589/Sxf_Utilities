@@ -5,6 +5,7 @@ using System.Text;
 using System.Web.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Serialization;
 
 namespace System.Web.Mvc
 {
@@ -52,8 +53,12 @@ namespace System.Web.Mvc
 
 
 
-
-            this.Settings.Converters = new List<JsonConverter>() { iso };
+            Settings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+            this.Settings.Converters = new List<JsonConverter>()
+            {
+                iso,
+                new StringEnumConverter()
+            };
 
             var scriptSerializer = JsonSerializer.Create(this.Settings);
 

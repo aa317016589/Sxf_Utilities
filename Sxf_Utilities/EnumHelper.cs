@@ -92,15 +92,15 @@ namespace Sxf_Utilities
             return (T) Enum.Parse(variable.GetType(), result.ToString());
         }
 
-        public static bool HasFlags<E>(this E variable, params E[] flags)
-            where E : struct, IComparable, IFormattable, IConvertible
+        public static bool HasFlags<T>(this T variable, params T[] flags)
+            where T : struct, IComparable, IFormattable, IConvertible
         {
-            if (!typeof (E).IsEnum)
+            if (!typeof (T).IsEnum)
                 throw new ArgumentException("variable must be an Enum", "variable");
 
             foreach (var flag in flags)
             {
-                if (!Enum.IsDefined(typeof (E), flag))
+                if (!Enum.IsDefined(typeof (T), flag))
                     return false;
 
                 ulong numFlag = Convert.ToUInt64(flag);
